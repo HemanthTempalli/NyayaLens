@@ -1,0 +1,150 @@
+{% extends 'base.html' %} {% block title %}Query History - NyayaLens{% endblock
+%} {% block content %}
+<div class="row">
+  <div class="col-lg-10 mx-auto">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>
+        <i class="fas fa-history text-primary me-2"></i>
+        Query History
+      </h2>
+      <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+        <i class="fas fa-search me-2"></i>
+        New Search
+      </a>
+    </div>
+
+    {% if queries %}
+    <!-- Search History Table -->
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-table me-2"></i>
+          Search History ({{ queries|length }} entries)
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Case Details</th>
+                <th>Search Time</th>
+                <th>Status</th>
+                <th>Results</th>
+                <th>Error Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for query in queries %}
+              <tr>
+                <td>
+                  <strong
+                    >{{ query.case_type }} {{ query.case_number }}/{{
+                    query.filing_year }}</strong
+                  >
+                  {% if query.parties_plaintiff %}
+                  <br /><small class="text-muted"
+                    >{{ query.parties_plaintiff[:50] }}{% if
+                    query.parties_plaintiff|length > 50 %}...{% endif %}</small
+                  >
+                  {% endif %}
+                </td>
+                <td>
+                  {{ query.query_timestamp.strftime('%d/%m/%Y') }}<br />
+                  <small class="text-muted"
+                    >{{ query.query_timestamp.strftime('%H:%M:%S') }}</small
+                  >
+                </td>
+                <td>
+                  {% if query.success %}
+                  <span class="badge bg-success">
+                    <i class="fas fa-check me-1"></i>Success
+                  </span>
+                  {% else %}
+                  <span class="badge bg-danger">
+                    <i class="fas fa-times me-1"></i>Failed
+                  </span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if query.success %} {% if query.orders %}
+                  <span class="badge bg-info"
+                    >{{ query.orders|length }} Orders</span
+                  >
+                  {% else %}
+                  <span class="text-muted">No orders found</span>
+                  {% endif %} {% if query.parties_plaintiff or
+                  query.parties_defendant %}
+                  <br /><small class="text-success">Parties extracted</small>
+                  {% endif %} {% else %}
+                  <span class="text-muted">No data</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if query.error_message %}
+                  <small class="text-danger"
+                    >{{ query.error_message[:100] }}{% if
+                    query.error_message|length > 100 %}...{% endif %}</small
+                  >
+                  {% else %}
+                  <span class="text-muted">-</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mt-4">
+      <div class="col-md-4">
+        <div class="card bg-success text-white">
+          <div class="card-body text-center">
+            <h3>{{ queries | selectattr('success') | list | length }}</h3>
+            <p class="mb-0">Successful Searches</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card bg-danger text-white">
+          <div class="card-body text-center">
+            <h3>{{ queries | rejectattr('success') | list | length }}</h3>
+            <p class="mb-0">Failed Searches</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card bg-info text-white">
+          <div class="card-body text-center">
+            <h3>
+              {% set total_orders = 0 %}
+              {% for query in queries %}
+                {% set total_orders = total_orders + query.orders|length %}
+              {% endfor %}
+              {{ total_orders }}
+            </h3>
+            <p class="mb-0">Total Orders Found</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% else %}
+    <!-- No History Message -->
+    <div class="text-center py-5">
+      <i class="fas fa-search fa-3x text-muted mb-3"></i>
+      <h4>No Search History</h4>
+      <p class="text-muted">You haven't performed any searches yet.</p>
+      <a href="{{ url_for('index') }}" class="btn btn-primary">
+        <i class="fas fa-search me-2"></i>
+        Start Your First Search
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

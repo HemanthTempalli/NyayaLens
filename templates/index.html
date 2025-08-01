@@ -1,0 +1,177 @@
+{% extends 'base.html' %} {% block title %}Search Cases - NyayaLens{% endblock
+%} {% block content %}
+<div class="row">
+  <div class="col-lg-8 mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-5">
+      <h1 class="display-5">
+        <i class="fas fa-search-location text-primary me-3"></i>
+        NyayaLens
+      </h1>
+      <p class="lead text-muted">"Clarity into Cases. Justice in Focus."</p>
+      <p class="text-muted">
+        Advanced legal research platform for comprehensive case information
+      </p>
+    </div>
+
+    <!-- Search Form -->
+    <div class="card shadow">
+      <div class="card-header bg-primary">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-file-alt me-2"></i>
+          Case Search Form
+        </h5>
+      </div>
+      <div class="card-body">
+        <form
+          method="POST"
+          action="{{ url_for('search_case') }}"
+          id="searchForm"
+        >
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="case_type" class="form-label">
+                <i class="fas fa-tags me-1"></i>Case Type
+              </label>
+              <select
+                class="form-select"
+                id="case_type"
+                name="case_type"
+                required
+              >
+                <option value="">Select Case Type</option>
+                <option value="W.P.(C)">W.P.(C) - Writ Petition (Civil)</option>
+                <option value="CRL.A.">CRL.A. - Criminal Appeal</option>
+                <option value="CS(OS)">
+                  CS(OS) - Civil Suit (Original Side)
+                </option>
+                <option value="CRL.M.C.">CRL.M.C. - Criminal Misc. Case</option>
+                <option value="W.P.(CRL)">
+                  W.P.(CRL) - Writ Petition (Criminal)
+                </option>
+                <option value="FAO">FAO - First Appeal from Order</option>
+                <option value="RFA">RFA - Regular First Appeal</option>
+                <option value="ARB.P.">ARB.P. - Arbitration Petition</option>
+                <option value="CONT.CAS">CONT.CAS - Contempt Case</option>
+                <option value="CRL.REV.P.">
+                  CRL.REV.P. - Criminal Revision Petition
+                </option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="case_number" class="form-label">
+                <i class="fas fa-hashtag me-1"></i>Case Number
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="case_number"
+                name="case_number"
+                placeholder="e.g., 1234"
+                required
+              />
+              <div class="form-text">
+                Enter the case number without the year
+              </div>
+            </div>
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <label for="filing_year" class="form-label">
+                <i class="fas fa-calendar me-1"></i>Filing Year
+              </label>
+              <select
+                class="form-select"
+                id="filing_year"
+                name="filing_year"
+                required
+              >
+                <option value="">Select Year</option>
+                {% for year in range(2024, 1999, -1) %}
+                <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary btn-lg w-100">
+                <i class="fas fa-search me-2"></i>
+                Search Case
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Example -->
+        <div class="alert alert-info">
+          <h6><i class="fas fa-lightbulb me-2"></i>Example Search</h6>
+          <p class="mb-0">
+            Case Type: <strong>W.P.(C)</strong>, Case Number:
+            <strong>1234</strong>, Filing Year: <strong>2023</strong>
+            <br />
+            This will search for: W.P.(C) 1234/2023
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAPTCHA Notice -->
+    <div class="alert alert-warning mt-4">
+      <h6><i class="fas fa-exclamation-triangle me-2"></i>Important Notice</h6>
+      <p class="mb-0">
+        <strong>CAPTCHA Handling:</strong> If the court website requires CAPTCHA
+        verification, you'll receive an error message. In such cases, please
+        visit the court website directly or try again later when CAPTCHA
+        requirements may be relaxed.
+      </p>
+    </div>
+
+    <!-- Recent Queries -->
+    {% if recent_queries %}
+    <div class="card mt-4">
+      <div class="card-header">
+        <h6 class="card-title mb-0">
+          <i class="fas fa-clock me-2"></i>
+          Recent Searches
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Case</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for query in recent_queries %}
+              <tr>
+                <td>
+                  {{ query.case_type }} {{ query.case_number }}/{{
+                  query.filing_year }}
+                </td>
+                <td>{{ query.query_timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>
+                  {% if query.success %}
+                  <span class="badge bg-success">
+                    <i class="fas fa-check me-1"></i>Success
+                  </span>
+                  {% else %}
+                  <span class="badge bg-danger">
+                    <i class="fas fa-times me-1"></i>Failed
+                  </span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

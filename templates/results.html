@@ -1,0 +1,220 @@
+{% extends 'base.html' %} {% block title %}Case Results - NyayaLens{% endblock
+%} {% block content %}
+<div class="row">
+  <div class="col-lg-10 mx-auto">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>
+        <i class="fas fa-file-alt text-success me-2"></i>
+        Case Details Found
+      </h2>
+      <div class="btn-group">
+        <a
+          href="{{ url_for('export_case_json', query_id=query.id) }}"
+          class="btn btn-info"
+          target="_blank"
+        >
+          <i class="fas fa-download me-2"></i>
+          Export JSON
+        </a>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+          <i class="fas fa-arrow-left me-2"></i>
+          New Search
+        </a>
+      </div>
+    </div>
+
+    <!-- Case Summary -->
+    <div class="card mb-4 border-success">
+      <div class="card-header bg-success text-white">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-gavel me-2"></i>
+          {{ case_data.case_title or (query.case_type + " " + query.case_number
+          + "/" + query.filing_year) }}
+        </h5>
+      </div>
+      <div class="card-body">
+        <!-- Case Overview -->
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <h6><i class="fas fa-info-circle me-2"></i>Case Details</h6>
+            <p>
+              <strong>Case Type:</strong> {{ case_data.case_type or
+              query.case_type }}
+            </p>
+            <p>
+              <strong>Case Number:</strong> {{ case_data.case_number or
+              query.case_number }}
+            </p>
+            <p>
+              <strong>Filing Year:</strong> {{ case_data.filing_year or
+              query.filing_year }}
+            </p>
+            <p>
+              <strong>Status:</strong>
+              <span class="badge bg-primary"
+                >{{ case_data.status or 'Pending' }}</span
+              >
+            </p>
+          </div>
+          <div class="col-md-4">
+            <h6><i class="fas fa-users me-2"></i>Parties</h6>
+            <p>
+              <strong>Petitioner:</strong><br />{{ case_data.petitioner or
+              case_data.plaintiff or 'Not specified' }}
+            </p>
+            <p>
+              <strong>Respondent:</strong><br />{{ case_data.respondent or
+              case_data.defendant or 'Not specified' }}
+            </p>
+          </div>
+          <div class="col-md-4">
+            <h6><i class="fas fa-calendar-alt me-2"></i>Important Dates</h6>
+            <p>
+              <strong>Filing Date:</strong> {{ case_data.filing_date or 'Not
+              available' }}
+            </p>
+            <p>
+              <strong>Next Hearing:</strong> {{ case_data.next_hearing_date or
+              'Not scheduled' }}
+            </p>
+            {% if case_data.latest_order_date %}
+            <p>
+              <strong>Latest Order:</strong> {{ case_data.latest_order_date }}
+            </p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Bench Information -->
+        {% if case_data.bench %}
+        <div class="row mb-4">
+          <div class="col-12">
+            <h6><i class="fas fa-balance-scale me-2"></i>Bench</h6>
+            <p class="mb-0">{{ case_data.bench }}</p>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Latest Order Summary -->
+        {% if case_data.latest_order_summary %}
+        <div class="row">
+          <div class="col-12">
+            <h6><i class="fas fa-file-alt me-2"></i>Latest Order Summary</h6>
+            <div class="alert alert-info">
+              <p class="mb-0">{{ case_data.latest_order_summary }}</p>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Orders and Judgments -->
+    {% if case_data.orders %}
+    <div class="card">
+      <div class="card-header">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-download me-2"></i>
+          Orders & Judgments ({{ case_data.orders|length }})
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Order Title</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Download</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in case_data.orders %}
+              <tr>
+                <td>{{ order.title or 'Court Order' }}</td>
+                <td>{{ order.date or 'Date not specified' }}</td>
+                <td>
+                  <span class="badge bg-info">{{ order.type or 'Order' }}</span>
+                </td>
+                <td>
+                  {% if order.pdf_url %}
+                  <a
+                    href="{{ url_for('download_pdf', url=order.pdf_url, filename=(order.title or 'Court_Order')|replace(' ', '_')|replace('/', '_') + '.pdf') }}"
+                    class="btn btn-sm btn-primary"
+                    target="_blank"
+                  >
+                    <i class="fas fa-download me-1"></i>
+                    PDF
+                  </a>
+                  {% else %}
+                  <span class="text-muted">No PDF</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+      <h6><i class="fas fa-info-circle me-2"></i>No Orders Found</h6>
+      <p class="mb-0">
+        No downloadable orders or judgments were found for this case. This could
+        mean the case is still pending or the documents are not yet uploaded to
+        the website.
+      </p>
+    </div>
+    {% endif %}
+
+    <!-- Query Information -->
+    <div class="card mt-4 bg-dark">
+      <div class="card-header">
+        <h6 class="card-title mb-0">
+          <i class="fas fa-info me-2"></i>
+          Query Information
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <p>
+              <strong>Search Time:</strong> {{
+              query.query_timestamp.strftime('%d/%m/%Y at %H:%M:%S') }}
+            </p>
+            <p><strong>Source:</strong> Delhi High Court Website</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Data Freshness:</strong> Real-time from court website</p>
+            <p><strong>Query ID:</strong> #{{ query.id }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Important Notices -->
+    <div class="alert alert-warning mt-4">
+      <h6>
+        <i class="fas fa-exclamation-triangle me-2"></i>Important Disclaimers
+      </h6>
+      <ul class="mb-0">
+        <li>
+          This information is extracted from the public court website and may
+          not be complete
+        </li>
+        <li>
+          Always verify important details directly from the official court
+          website
+        </li>
+        <li>PDF downloads are fetched directly from the court's servers</li>
+        <li>
+          For legal proceedings, consult with qualified legal professionals
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
